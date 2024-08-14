@@ -38,7 +38,7 @@ async def scrape_prices():
     for attempt in range(max_retries):
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=True)
+                browser = await p.firefox.launch(headless=True)
                 context = await browser.new_context(
                     http_credentials={'username': '', 'password': ''},
                     ignore_https_errors=True
@@ -129,12 +129,12 @@ async def usdngnn(update, context):
 async def scheduled_scrape(context):
     await scrape_prices()
 
-TOKEN = "5527544225:AAH-RNG1F3d_xA1RQUbbNsXtn4w8lhyYxYU"
+
 def main():
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("price", get_price))
+    application.add_handler(CommandHandler("usd", get_price))
     application.add_handler(CommandHandler("usdngn", usdngnn))
     application.add_handler(CommandHandler("ngnusd", ngnusdd))
     application.add_handler(CommandHandler("help", help))

@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright and its dependencies
 RUN pip install playwright
-RUN playwright install chromium
+RUN playwright install firefox
 RUN playwright install-deps
 
 # Run the bot when the container launches
