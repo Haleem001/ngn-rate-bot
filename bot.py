@@ -7,12 +7,18 @@ import statistics
 from pytz import timezone
 from dotenv import load_dotenv
 import os
+from flask import Flask
+import os
 
 load_dotenv()
 TOKEN = os.getenv('BOTAPITOKEN')
 URL = os.getenv('URL')
+app = Flask(__name__)
 
-SCRAPE_INTERVAL = 60  # 60 seconds for testing
+@app.route('/')
+def home():
+    return "Bot is running!"
+SCRAPE_INTERVAL = 7200  # 60 seconds for testing
 PRICE_FILE = 'price_data.json'
 
 def save_price(price):
@@ -140,7 +146,16 @@ def main():
     application.add_handler(CommandHandler("help", help))
     application.job_queue.run_repeating(scheduled_scrape, interval=SCRAPE_INTERVAL)
 
-    application.run_polling()
+    # Start the bot in a separate thread
+    import threading
+    bot_thread = threading.Thread(target=application.run_polling)
+    bot_thread.start()
+
+    # Run the Flask app
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 if __name__ == '__main__':
     main()
+
+
