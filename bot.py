@@ -32,15 +32,21 @@ def load_price():
     except (FileNotFoundError, json.JSONDecodeError, KeyError):
         return None, None
 
+            
 async def scrape_prices():
     max_retries = 3
     for attempt in range(max_retries):
         try:
             async with async_playwright() as p:
                 browser = await p.chromium.launch(headless=True)
-                context = await browser.new_context()
+                context = await browser.new_context(
+                    http_credentials={'username': '', 'password': ''},
+                    ignore_https_errors=True
+                )
                 page = await context.new_page()
-                await page.goto(URL , timeout=600000)
+                await page.goto(URL, 
+                                timeout=60000, 
+                                wait_until='networkidle')
                 await page.click("button.ant-btn.css-7o12g0.ant-btn-primary.ant-btn-custom.ant-btn-custom-middle.ant-btn-custom-primary.bds-theme-component-light")
                 await page.wait_for_selector("span.price-amount", timeout=60000)
                 price_elements = await page.query_selector_all("span.price-amount")
@@ -51,9 +57,9 @@ async def scrape_prices():
             return average_price
         except Exception as e:
             print(f"Attempt {attempt + 1} failed: {str(e)}")
-            if attempt == max_retries - 1:
-                print("All attempts failed")
-                return None
+    print("All attempts failed")
+    return None
+
 
 async def get_current_price():
     price, saved_time = load_price()
