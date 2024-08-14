@@ -1,3 +1,4 @@
 .env
 /venv
 venv
+price_data.json

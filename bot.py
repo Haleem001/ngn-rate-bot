@@ -136,7 +136,8 @@ async def scheduled_scrape(context):
     await scrape_prices()
 
 
-def main():
+
+async def run_bot():
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
@@ -146,14 +147,31 @@ def main():
     application.add_handler(CommandHandler("help", help))
     application.job_queue.run_repeating(scheduled_scrape, interval=SCRAPE_INTERVAL)
 
-    # Start the bot in a separate thread
-    import threading
-    bot_thread = threading.Thread(target=application.run_polling)
-    bot_thread.start()
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
 
-    # Run the Flask app
+def run_flask():
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+def main():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    bot_task = loop.create_task(run_bot())
+    
+    import threading
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
+    
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.run_until_complete(bot_task)
+        loop.close()
 
 if __name__ == '__main__':
     main()
